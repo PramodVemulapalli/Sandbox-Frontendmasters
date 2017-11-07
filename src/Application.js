@@ -5,25 +5,35 @@ import SignIn from './SignIn';
 import NewRestaurant from './NewRestaurant';
 import Restaurants from './Restaurants';
 import './Application.css';
+import map from 'lodash/map';
+
 
 class Application extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentuser: null
+      currentuser: null,
+      restaurants: null
     };
+
+    this.restaurantsRef = database.ref('/restaurants');
   }
 
   componentDidMount(){
     auth.onAuthStateChanged((currentuser) => {
       console.log('AUTH_CHANGE',CurrentUser);
       this.setState({ currentuser });
+
+      this.restaurantsRef.on('value', (snapshot) => {
+        this.setState({ restaurants: snapshot.val() });
+        console.log(snapshot.val());
+      });
     });
   }
 
   render() {
 
-    const { currentuser } = this.state;
+    const { currentuser, restaurants } = this.state;
 
     return (
       <div className="Application">
@@ -35,6 +45,7 @@ class Application extends Component {
           { currentuser &&
             <div>
               <NewRestaurant />
+              { map(restaurants, (value, key) => {<p key={key}> {value} </p>}) }
               <CurrentUser user={currentuser} />
             </div>
           }
