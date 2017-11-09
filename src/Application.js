@@ -5,17 +5,21 @@ import SignIn from './SignIn';
 import NewRestaurant from './NewRestaurant';
 import Restaurants from './Restaurants';
 import './Application.css';
-import map from 'lodash/map';
+// import map from 'lodash/map';
+import pick from 'lodash/pick';
+
 
 
 class Application extends Component {
   constructor(props) {
     super(props);
+    this.usersRef = null;
+    this.userRef = null;
     this.state = {
       currentuser: null,
-      restaurants: null
+      restaurants: null,
+      users: null,
     };
-
     this.restaurantsRef = database.ref('/restaurants');
   }
 
@@ -23,7 +27,17 @@ class Application extends Component {
     auth.onAuthStateChanged((currentuser) => {
       console.log('AUTH_CHANGE',CurrentUser);
       this.setState({ currentuser });
+      this.usersRef = database.ref('/likeusers');
+      this.userRef = this.usersRef.child(currentuser.uid);
+      this.userRef.once('value').then((snapshot) => {
+        if (snapshot.val()) return;
+        const userData = pick(currentuser, ['displayName', 'photoURL', 'email']);
+        this.userRef.set(userData);
+      });
 
+      this.usersRef.on('value', (snapshot) => {
+        this.setState({ users: snapshot.val() });
+      });
       this.restaurantsRef.on('value', (snapshot) => {
         this.setState({ restaurants: snapshot.val() });
         console.log(snapshot.val());
@@ -35,6 +49,8 @@ class Application extends Component {
 
     const { currentuser, restaurants } = this.state;
 
+    console.log(restaurants);
+
     return (
       <div className="Application">
         <header className="Application--header">
@@ -45,8 +61,19 @@ class Application extends Component {
           { currentuser &&
             <div>
               <NewRestaurant />
-              { map(restaurants, (value, key) => {<p key={key}> {value} </p>}) }
+              <Restaurants restaurants={restaurants} user={currentuser} />
               <CurrentUser user={currentuser} />
+            </div>
+          }
+          { currentuser &&
+            <div>
+              <section className="ProfileCards">
+                {
+                  map(users, (user, uid) => {
+                    return <ProfileCard key={uid} user={user} uid={uid} />
+                  })
+                }
+              </section>
             </div>
           }
         </div>

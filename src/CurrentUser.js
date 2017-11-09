@@ -7,8 +7,8 @@ const CurrentUser = ({ user }) => {
     <div className="CurrentUser">
       <img
         className="CurrentUser--photo"
-        src= { user.photoURL }
-        alt= { user.displayName }
+        src={ user.photoURL }
+        alt={ user.displayName }
       />
       <div className="CurrentUser--identification">
         <h3> { user.displayName } </h3>
